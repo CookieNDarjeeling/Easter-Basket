@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🧺 이스터 바구니 — 타로 · 사주 · 레크레이션</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1>🧺 이스터 바구니</h1>
+    <p class="tagline">타로 · 사주 · 레크레이션, 재미있는 것 모음</p>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab is-active" data-tab="tarot" role="tab">🔮 타로</button>
+    <button class="tab" data-tab="saju" role="tab">🌙 사주</button>
+    <button class="tab" data-tab="recreation" role="tab">🎲 레크레이션</button>
+  </nav>
+
+  <main>
+    <!-- 타로 -->
+    <section id="tarot" class="panel is-active">
+      <h2>🔮 오늘의 타로</h2>
+      <p class="hint">마음속으로 질문을 떠올린 뒤, 카드를 뽑아보세요.</p>
+      <div class="controls">
+        <button id="tarot-draw" class="btn-primary">카드 한 장 뽑기</button>
+        <button id="tarot-three" class="btn-ghost">3장 스프레드 (과거·현재·미래)</button>
+      </div>
+      <div id="tarot-result" class="card-area"></div>
+    </section>
+
+    <!-- 사주 -->
+    <section id="saju" class="panel">
+      <h2>🌙 미니 사주</h2>
+      <p class="hint">생년월일을 입력하면 띠 · 오행 · 오늘의 운세를 알려드려요. (재미로만 보세요!)</p>
+      <form id="saju-form" class="saju-form">
+        <label>생년월일
+          <input type="date" id="saju-date" required min="1900-01-01" max="2026-12-31" />
+        </label>
+        <label>성별 (선택)
+          <select id="saju-gender">
+            <option value="">-</option>
+            <option value="female">여성</option>
+            <option value="male">남성</option>
+          </select>
+        </label>
+        <button type="submit" class="btn-primary">사주 보기</button>
+      </form>
+      <div id="saju-result" class="card-area"></div>
+    </section>
+
+    <!-- 레크레이션 -->
+    <section id="recreation" class="panel">
+      <h2>🎲 레크레이션</h2>
+      <p class="hint">모임·회식·MT에서 바로 쓰는 게임 도구들.</p>
+
+      <div class="rec-grid">
+        <div class="rec-card">
+          <h3>🎯 룰렛 / 사다리 뽑기</h3>
+          <p>이름이나 항목을 줄바꿈으로 입력하세요.</p>
+          <textarea id="rec-names" rows="4" placeholder="홍길동&#10;김영희&#10;이철수"></textarea>
+          <div class="controls">
+            <button id="rec-pick" class="btn-primary">랜덤 당첨자 뽑기</button>
+            <button id="rec-teams" class="btn-ghost">팀 나누기</button>
+          </div>
+          <label class="inline">팀 수
+            <input type="number" id="rec-team-count" value="2" min="2" max="10" />
+          </label>
+          <div id="rec-pick-result" class="card-area"></div>
+        </div>
+
+        <div class="rec-card">
+          <h3>🍻 랜덤 게임 추천</h3>
+          <button id="rec-game" class="btn-primary">게임 뽑기</button>
+          <div id="rec-game-result" class="card-area"></div>
+        </div>
+
+        <div class="rec-card">
+          <h3>😈 벌칙 룰렛</h3>
+          <button id="rec-penalty" class="btn-primary">벌칙 뽑기</button>
+          <div id="rec-penalty-result" class="card-area"></div>
+        </div>
+
+        <div class="rec-card">
+          <h3>💬 밸런스 게임 / 질문</h3>
+          <button id="rec-question" class="btn-primary">질문 뽑기</button>
+          <div id="rec-question-result" class="card-area"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>🥚 재미로 보는 콘텐츠입니다 · Easter-Basket</p>
+  </footer>
+
+  <script src="data/content.js"></script>
+  <script src="js/tarot.js"></script>
+  <script src="js/saju.js"></script>
+  <script src="js/recreation.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
