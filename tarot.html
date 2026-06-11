@@ -161,7 +161,10 @@
       </div>
       <div class="phase" id="shuffle" hidden><div class="shuffle-deck"><span></span><span></span><span></span><span></span><span></span></div></div>
       <div class="phase" id="pile" hidden><div class="pile-cards" id="pileScroll"><div class="pile-track" id="pileTrack"></div></div></div>
-      <div class="phase" id="finish" hidden><div class="choices"><button id="readBtn">해석 읽기</button><button class="ghost" id="resetBtn">다시 펼치기</button></div></div>
+      <div class="phase" id="finish" hidden>
+        <div class="choices"><button id="readBtn">해석 읽기</button><button class="ghost" id="resetBtn">다시 펼치기</button></div>
+        <p class="hint">해석 읽기를 눌러도 펼쳐진 카드는 그대로 유지돼요.<br>API 키가 없으면 입력 안내가 먼저 나와요 — 키를 받아 와도 같은 카드로 해석합니다.</p>
+      </div>
     </div>
 
     <div class="reading" id="reading"></div>
@@ -606,9 +609,9 @@
     const intro = message ? message + "\n\n" : "";
     wrap.innerHTML =
       '<div class="ai-title">해 석</div>' +
-      '<div class="ai-box">' + intro + 'AI 종합 해석을 읽으려면 Claude API 키가 필요해요.\n키는 이 브라우저에만 저장되고, 다른 곳으로 전송되지 않아요.</div>' +
+      '<div class="ai-box">' + intro + 'AI 종합 해석을 읽으려면 Claude API 키가 필요해요.\n키는 이 브라우저에만 저장되고, 다른 곳으로 전송되지 않아요.\n\n🃏 지금 펼친 카드는 그대로 저장되어 있어요 (1시간 보관).\n키 발급 페이지는 새 탭에서 열리며, 돌아와도 같은 카드로 해석합니다.</div>' +
       '<div class="key-form"><input type="password" id="apiKeyInput" placeholder="sk-ant-api03-…"><button class="ghost" id="apiKeySave">저장하고 읽기</button></div>' +
-      '<p class="key-note">API 키는 <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>에서 발급받을 수 있어요.</p>';
+      '<p class="key-note">API 키는 <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>에서 발급받을 수 있어요. (새 탭에서 열려요)</p>';
     document.getElementById("apiKeySave").addEventListener("click", () => {
       const v = document.getElementById("apiKeyInput").value.trim();
       if (!v) return;
