@@ -1,4 +1,4 @@
-// 미니 사주 기능 (재미로 보는 콘텐츠)
+// 미니 사주 기능 — 띠(12지)와 오행(천간) 계산
 (function () {
   const ZODIAC = [
     { a: "쥐", e: "🐭" }, { a: "소", e: "🐮" }, { a: "호랑이", e: "🐯" },
@@ -25,55 +25,14 @@
     return ELEMENTS.water; // 2, 3
   }
 
-  // 입력값으로 만드는 결정적 의사난수 (같은 날 같은 결과)
-  function seededRand(seed) {
-    let h = 2166136261;
-    for (let i = 0; i < seed.length; i++) {
-      h ^= seed.charCodeAt(i);
-      h = Math.imul(h, 16777619);
-    }
-    return function () {
-      h += 0x6D2B79F5;
-      let t = h;
-      t = Math.imul(t ^ (t >>> 15), t | 1);
-      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-
-  const FORTUNES = [
-    "작은 행운이 예상치 못한 곳에서 찾아오는 하루입니다.",
-    "미뤄둔 일을 시작하기 좋은 기운이 흐릅니다.",
-    "주변 사람과의 대화에서 좋은 기회가 생깁니다.",
-    "오늘은 무리하지 말고 컨디션 관리에 신경 쓰세요.",
-    "직감을 믿고 움직이면 좋은 결과가 따릅니다.",
-    "금전운이 무난한 날, 충동구매만 조심하세요.",
-    "새로운 인연이나 정보가 들어올 수 있습니다.",
-    "차분함을 유지하면 갈등도 자연스럽게 풀립니다."
-  ];
-
-  function bar(label, value) {
-    return `<div class="luck-row"><span class="label">${label}</span>
-      <span class="bar"><span style="width:${value}%"></span></span></div>`;
-  }
-
   function showSaju(e) {
     e.preventDefault();
     const dateStr = document.getElementById("saju-date").value;
     if (!dateStr) return;
-    const [y, m, d] = dateStr.split("-").map(Number);
+    const y = Number(dateStr.split("-")[0]);
 
     const zodiac = ZODIAC[((y - 1900) % 12 + 12) % 12];
     const el = elementOf(y);
-
-    const today = "2026-06-10"; // 기준일 (오늘의 운세는 매일 갱신)
-    const rand = seededRand(dateStr + "|" + today);
-    const total = 50 + Math.floor(rand() * 50);
-    const love = 40 + Math.floor(rand() * 60);
-    const money = 40 + Math.floor(rand() * 60);
-    const work = 40 + Math.floor(rand() * 60);
-    const fortune = FORTUNES[Math.floor(rand() * FORTUNES.length)];
-    const luckyNum = 1 + Math.floor(rand() * 45);
 
     const result = document.getElementById("saju-result");
     result.innerHTML = `
@@ -83,16 +42,8 @@
           <span class="saju-tag">${el.emoji} 오행: ${el.name}</span>
           <span class="saju-tag">행운의 색: ${el.color}</span>
           <span class="saju-tag">행운의 방향: ${el.lucky}</span>
-          <span class="saju-tag">행운의 숫자: ${luckyNum}</span>
         </div>
         <p>${el.trait} 기질을 타고난 <strong>${zodiac.a}띠</strong>예요.</p>
-        <div class="luck-bars">
-          ${bar("총운", total)}
-          ${bar("애정운", love)}
-          ${bar("재물운", money)}
-          ${bar("직장운", work)}
-        </div>
-        <p class="result-text">🔮 <strong>오늘의 운세</strong> — ${fortune}</p>
       </div>`;
   }
 

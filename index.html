@@ -33,17 +33,10 @@
     <!-- 사주 -->
     <section id="saju" class="panel">
       <h2>🌙 미니 사주</h2>
-      <p class="hint">생년월일을 입력하면 띠 · 오행 · 오늘의 운세를 알려드려요. (재미로만 보세요!)</p>
+      <p class="hint">생년월일을 입력하면 띠 · 오행을 알려드려요. (재미로만 보세요!)</p>
       <form id="saju-form" class="saju-form">
         <label>생년월일
           <input type="date" id="saju-date" required min="1900-01-01" max="2026-12-31" />
-        </label>
-        <label>성별 (선택)
-          <select id="saju-gender">
-            <option value="">-</option>
-            <option value="female">여성</option>
-            <option value="male">남성</option>
-          </select>
         </label>
         <button type="submit" class="btn-primary">사주 보기</button>
       </form>
