@@ -9,18 +9,30 @@
     try {
       const doc = tarotFrame.contentDocument;
       if (!doc || !doc.body) return;
-      const h = doc.documentElement.scrollHeight;
+      // tarot.html은 html/body가 height:100%라 body.scrollHeight가 실제 내용 높이
+      const h = Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight);
       if (h > 0) tarotFrame.style.height = h + "px";
     } catch (e) { /* file:// 등 접근이 막힌 환경이면 CSS min-height로 동작 */ }
   }
 
+  function setupTarotFrame() {
+    resizeTarotFrame();
+    try {
+      const doc = tarotFrame.contentDocument;
+      const ro = new ResizeObserver(resizeTarotFrame);
+      // body는 height:100%로 고정이라 실제로 자라는 내부 요소(main.frame)를 관찰
+      ro.observe(doc.querySelector("main") || doc.body);
+    } catch (e) {}
+  }
+
   if (tarotFrame) {
-    tarotFrame.addEventListener("load", function () {
-      resizeTarotFrame();
-      try {
-        new ResizeObserver(resizeTarotFrame).observe(tarotFrame.contentDocument.body);
-      } catch (e) {}
-    });
+    tarotFrame.addEventListener("load", setupTarotFrame);
+    // 이 스크립트보다 iframe이 먼저 로드된 경우에도 동작하도록
+    try {
+      if (tarotFrame.contentDocument && tarotFrame.contentDocument.readyState === "complete") {
+        setupTarotFrame();
+      }
+    } catch (e) {}
   }
 
   tabs.forEach(tab => {
