@@ -3,18 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🧺 이스터 바구니 — 타로 · 사주 · 레크레이션</title>
+  <title>🧺 이스터 바구니 — 타로 · 사주 · 별자리 · 레크레이션</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <header class="site-header">
     <h1>🧺 이스터 바구니</h1>
-    <p class="tagline">타로 · 사주 · 레크레이션, 즐길거리 모음</p>
+    <p class="tagline">타로 · 사주 · 별자리 · 레크레이션, 즐길거리 모음</p>
   </header>
 
   <nav class="tabs" role="tablist">
     <button class="tab is-active" data-tab="tarot" role="tab">🔮 타로</button>
     <button class="tab" data-tab="saju" role="tab">🌙 사주</button>
+    <button class="tab" data-tab="horoscope" role="tab">⭐ 별자리</button>
     <button class="tab" data-tab="recreation" role="tab">🎲 레크레이션</button>
   </nav>
 
@@ -35,6 +36,14 @@
         <button type="submit" class="btn-primary">사주 보기</button>
       </form>
       <div id="saju-result" class="card-area"></div>
+    </section>
+
+    <!-- 별자리 운세 (AI 생성) -->
+    <section id="horoscope" class="panel">
+      <h2>⭐ 별자리 운세</h2>
+      <p class="hint">별자리를 고르면 오늘의 운세를 AI가 새로 써드려요. (재미로만 보세요!)</p>
+      <div id="zodiac-grid" class="zodiac-grid"></div>
+      <div id="horoscope-result" class="card-area"></div>
     </section>
 
     <!-- 레크레이션 -->
@@ -84,6 +93,7 @@
 
   <script src="data/content.js"></script>
   <script src="js/saju.js"></script>
+  <script src="js/horoscope.js"></script>
   <script src="js/recreation.js"></script>
   <script src="js/main.js"></script>
 </body>
