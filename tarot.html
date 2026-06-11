@@ -149,7 +149,7 @@
       <div class="phase" id="intro">
         <textarea id="questionInput" rows="2" placeholder="마음에 둔 물음을 적어주세요&#10;비워두면 오늘의 전반적인 흐름을 읽어요"></textarea>
         <div class="choices"><button id="shuffleBtn">카드 섞기</button></div>
-        <p class="hint">카드 펼치기와 자리별 풀이는 로그인 없이 볼 수 있어요.<br>'AI 종합 해석'은 본인 AI 계정에 한 번 연결(로그인)하면 이용할 수 있어요.</p>
+        <p class="hint">카드 펼치기와 자리별 풀이는 로그인 없이 볼 수 있어요.<br>'AI 종합 해석'은 처음 한 번만 연결하면, 다음부터는 누르는 즉시 바로 떠요.</p>
       </div>
 
       <div class="phase" id="ready" hidden>
@@ -609,7 +609,7 @@
     const intro = message ? message + "\n\n" : "";
     wrap.innerHTML =
       '<div class="ai-title">해 석</div>' +
-      '<div class="ai-box">' + intro + '일곱 장을 하나로 풀어주는 AI 종합 해석이에요.\n이용하려면 본인의 AI 계정에 한 번 로그인해서 \'연결 키\'를 붙여넣으면 돼요.\n연결 키는 이 기기에만 저장되고, 다른 곳으로 보내지 않아요.\n\n🃏 지금 펼친 카드는 그대로 저장돼 있어요 (1시간).\n로그인 페이지는 새 창에서 열리고, 돌아와도 같은 카드로 해석합니다.</div>' +
+      '<div class="ai-box">' + intro + '일곱 장을 하나로 풀어주는 AI 종합 해석이에요.\n처음 한 번만 본인 AI 계정에 로그인해 \'연결 키\'를 붙여넣으면 끝이에요.\n이 기기에서는 다음부터 \'해석 읽기\'를 누르는 즉시 바로 해석이 떠요 — 키를 다시 찾을 필요 없어요.\n연결 키는 이 기기에만 저장되고, 다른 곳으로 보내지 않아요.\n\n🃏 지금 펼친 카드는 그대로 저장돼 있어요 (1시간).\n로그인 페이지는 새 창에서 열리고, 돌아와도 같은 카드로 해석합니다.</div>' +
       '<div class="key-form"><input type="password" id="apiKeyInput" placeholder="여기에 연결 키를 붙여넣기"><button class="ghost" id="apiKeySave">연결하고 해석 보기</button></div>' +
       '<p class="key-note">처음이라면 <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>에서 무료로 가입·로그인한 뒤, \'API Key(연결 키)\'를 만들어 복사해 위에 붙여넣으세요. (새 창에서 열려요)</p>';
     document.getElementById("apiKeySave").addEventListener("click", () => {
