@@ -19,15 +19,9 @@
   </nav>
 
   <main>
-    <!-- 타로 -->
+    <!-- 타로 (C-Tarot: 켈틱 크로스 7장 스프레드) -->
     <section id="tarot" class="panel is-active">
-      <h2>🔮 오늘의 타로</h2>
-      <p class="hint">마음속으로 질문을 떠올린 뒤, 카드를 뽑아보세요.</p>
-      <div class="controls">
-        <button id="tarot-draw" class="btn-primary">카드 한 장 뽑기</button>
-        <button id="tarot-three" class="btn-ghost">3장 스프레드 (과거·현재·미래)</button>
-      </div>
-      <div id="tarot-result" class="card-area"></div>
+      <iframe id="tarot-frame" src="tarot.html" title="C-Tarot 켈틱 크로스 타로"></iframe>
     </section>
 
     <!-- 사주 -->
@@ -89,7 +83,6 @@
   </footer>
 
   <script src="data/content.js"></script>
-  <script src="js/tarot.js"></script>
   <script src="js/saju.js"></script>
   <script src="js/recreation.js"></script>
   <script src="js/main.js"></script>

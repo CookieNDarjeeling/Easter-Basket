@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C-Tarot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #14182a; --ink-deep: #0e111f;
+    --parchment: #f3ebdb; --parchment-shadow: #e4d9c2;
+    --gold: #c9a45c; --gold-soft: #9c8049;
+    --text-light: #e7e0d0; --text-dim: #877f6c;
+    --back: repeating-linear-gradient(45deg, rgba(201,164,92,0.08) 0 7px, transparent 7px 14px),
+            linear-gradient(160deg, #2a2f47, #1b1f33);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow-x: hidden; }
+  body { touch-action: pan-y; }
+  body {
+    background: radial-gradient(ellipse 80% 55% at 50% 14%, rgba(201,164,92,0.10), transparent 60%),
+                linear-gradient(180deg, var(--ink) 0%, var(--ink-deep) 100%);
+    color: var(--text-light); font-family: 'Gowun Batang', serif;
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2.4rem 1.2rem 3rem;
+  }
+  .frame { width: 100%; max-width: 480px; text-align: center; }
+  .eyebrow { font-family: 'Nanum Myeongjo', serif; font-size: 0.76rem; letter-spacing: 0.5em; color: var(--gold); margin-bottom: 0.8rem; padding-left: 0.5em; }
+  h1 { font-family: 'Nanum Myeongjo', serif; font-weight: 800; font-size: 1.9rem; letter-spacing: 0.05em; margin-bottom: 0.4rem; }
+  .lede { font-size: 0.9rem; color: var(--text-dim); line-height: 1.7; max-width: 28ch; margin: 0 auto; }
+
+  .cross { display: grid; grid-template-columns: 1fr 1.4fr 1fr; grid-template-rows: auto auto auto; gap: 0.7rem 0.3rem; align-items: center; justify-items: center; max-width: 372px; margin: 2.2rem auto 1.6rem; }
+  .slot { width: 80px; height: 124px; border-radius: 8px; background: linear-gradient(165deg, var(--parchment), var(--parchment-shadow)); border: 1px solid var(--gold); box-shadow: 0 8px 22px rgba(0,0,0,0.4), inset 0 0 0 4px rgba(201,164,92,0.16); color: var(--ink); position: relative; overflow: hidden; transition: box-shadow 0.3s ease; }
+  .slot.result { border-width: 2px; }
+  .slot.next { box-shadow: 0 0 0 2px var(--gold), 0 0 18px rgba(201,164,92,0.6), inset 0 0 0 4px rgba(201,164,92,0.2); }
+  .slot-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 0.5rem 0.3rem; opacity: 0; transition: opacity 0.4s ease; }
+  .slot.filled .slot-inner { opacity: 1; }
+  .pos-label { font-family: 'Nanum Myeongjo', serif; font-size: 0.62rem; letter-spacing: 0.02em; color: var(--gold-soft); white-space: nowrap; }
+  .card-art { flex: 1; min-height: 0; width: 100%; }
+  .card-art svg { width: 100%; height: 100%; display: block; }
+  .card-art.rev { transform: rotate(180deg); }
+  .card-name { font-family: 'Nanum Myeongjo', serif; font-weight: 700; font-size: 0.62rem; line-height: 1.2; color: var(--ink); word-break: keep-all; text-align: center; padding-top: 0.15rem; }
+  .card-dir { font-size: 0.58rem; color: var(--gold-soft); letter-spacing: 0.08em; min-height: 0.8em; }
+  .card-dir.rev { color: #9c4a3c; }
+  .pos-top { grid-column: 2; grid-row: 1; } .pos-result { grid-column: 3; grid-row: 1; }
+  .pos-left { grid-column: 1; grid-row: 2; } .pos-right { grid-column: 3; grid-row: 2; }
+  .pos-bottom { grid-column: 2; grid-row: 3; }
+  .center { grid-column: 2; grid-row: 2; position: relative; width: 80px; height: 124px; }
+  .center .vertical { position: absolute; inset: 0; }
+  .center .horizontal { position: absolute; top: 50%; left: 50%; width: 80px; height: 124px; transform: translate(-50%, -50%) rotate(90deg); z-index: 2; }
+  .center .horizontal .slot-inner { transform: rotate(-90deg); }
+
+  .stage { min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .status { font-family: 'Nanum Myeongjo', serif; font-size: 0.92rem; color: var(--text-light); letter-spacing: 0.02em; margin-bottom: 1.1rem; min-height: 1.4em; }
+  .hint { font-size: 0.76rem; color: var(--text-dim); line-height: 1.7; margin-top: 1.1rem; }
+  .phase[hidden] { display: none; }
+  .choices { display: flex; gap: 0.8rem; flex-wrap: wrap; justify-content: center; }
+
+  #questionInput {
+    display: block; width: 100%; max-width: 320px; margin: 0 auto 1.2rem;
+    background: rgba(201,164,92,0.06); border: 1px solid rgba(201,164,92,0.3); border-radius: 10px;
+    color: var(--text-light); font-family: 'Gowun Batang', serif; font-size: 0.9rem; line-height: 1.7;
+    padding: 0.8rem 1rem; resize: none; text-align: center;
+  }
+  #questionInput::placeholder { color: var(--text-dim); }
+  #questionInput:focus { outline: none; border-color: var(--gold); }
+
+  .question-line {
+    font-family: 'Nanum Myeongjo', serif; font-size: 0.85rem; color: var(--gold);
+    letter-spacing: 0.04em; max-width: 34ch; margin: 1.4rem auto -0.8rem; line-height: 1.7;
+  }
+  .question-line::before { content: "물음 · "; color: var(--gold-soft); }
+  .question-line[hidden] { display: none; }
+  button { font-family: 'Nanum Myeongjo', serif; font-size: 0.92rem; letter-spacing: 0.1em; color: var(--ink); background: var(--gold); border: none; border-radius: 999px; padding: 0.78rem 1.9rem; cursor: pointer; transition: transform 0.2s ease, background 0.2s ease, opacity 0.2s; box-shadow: 0 6px 20px rgba(201,164,92,0.25); }
+  button.ghost { background: transparent; color: var(--gold); border: 1px solid var(--gold); box-shadow: none; }
+  button:hover { transform: translateY(-2px); }
+  button.ghost:hover { background: rgba(201,164,92,0.12); }
+  button:disabled { opacity: 0.5; cursor: default; transform: none; }
+  button:focus-visible { outline: 2px solid var(--text-light); outline-offset: 3px; }
+
+  .shuffle-deck { position: relative; width: 80px; height: 124px; }
+  .shuffle-deck span { position: absolute; inset: 0; border-radius: 8px; background: var(--back); border: 1px solid rgba(201,164,92,0.3); box-shadow: 0 8px 22px rgba(0,0,0,0.45); animation: shuffle 0.6s ease-in-out infinite; }
+  .shuffle-deck span:nth-child(2){animation-delay:0.08s}.shuffle-deck span:nth-child(3){animation-delay:0.16s}.shuffle-deck span:nth-child(4){animation-delay:0.24s}.shuffle-deck span:nth-child(5){animation-delay:0.32s}
+  @keyframes shuffle { 0%{transform:translateX(0) rotate(0)} 25%{transform:translateX(-26px) rotate(-9deg)} 50%{transform:translateX(26px) rotate(9deg)} 75%{transform:translateX(-13px) rotate(-4deg)} 100%{transform:translateX(0) rotate(0)} }
+
+  .pile-cards { width: 100%; max-width: 372px; margin: 0 auto; height: 102px; padding-top: 16px; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
+    touch-action: pan-x; overscroll-behavior-x: contain;
+    border-radius: 12px; background: rgba(201,164,92,0.05); border: 1px solid rgba(201,164,92,0.18);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent); }
+  .pile-track { display: flex; width: max-content; padding: 0 20px 12px; }
+  .pile-card { position: relative; flex: 0 0 auto; width: 46px; height: 74px; margin-right: -10px; border-radius: 6px; background: var(--back); border: 1px solid rgba(201,164,92,0.35); box-shadow: 0 5px 14px rgba(0,0,0,0.4); cursor: pointer; transition: transform 0.2s ease, opacity 0.35s ease; }
+  .pile-card:hover { transform: translateY(-12px); z-index: 20; }
+  .pile-card.taken { opacity: 0; transform: translateY(-40px) scale(0.8); pointer-events: none; }
+
+  .reading { text-align: left; max-width: 364px; margin: 2.2rem auto 0; border-top: 1px solid rgba(201,164,92,0.3); padding-top: 1.6rem; }
+  .reading-row { padding: 0.6rem 0; }
+  .reading-row + .reading-row { border-top: 1px solid rgba(201,164,92,0.12); }
+  .r-head { display: flex; gap: 0.55rem; align-items: baseline; margin-bottom: 0.3rem; }
+  .r-num { font-family: 'Nanum Myeongjo', serif; font-weight: 800; color: var(--gold); min-width: 1.8em; font-size: 0.88rem; }
+  .r-name { font-family: 'Nanum Myeongjo', serif; color: var(--text-light); }
+  .r-card { font-family: 'Nanum Myeongjo', serif; font-size: 0.8rem; color: var(--gold-soft); margin-left: auto; white-space: nowrap; }
+  .r-card.rev { color: #c06a5a; }
+  .r-body { font-size: 0.84rem; color: var(--text-dim); line-height: 1.6; padding-left: 2.35em; }
+  .reading-row.revealed .r-body { color: var(--text-light); }
+
+  #aiReading { max-width: 364px; margin: 1.8rem auto 0; text-align: left; }
+  .ai-title { font-family: 'Nanum Myeongjo', serif; color: var(--gold); font-size: 0.74rem; letter-spacing: 0.4em; margin-bottom: 0.9rem; text-align: center; padding-left: 0.4em; }
+  .ai-box { background: rgba(201,164,92,0.06); border: 1px solid rgba(201,164,92,0.25); border-radius: 10px; padding: 1.4rem 1.3rem; font-size: 0.9rem; line-height: 1.95; color: var(--text-light); white-space: pre-wrap; }
+  .ai-box.loading { color: var(--text-dim); font-style: italic; }
+
+  .key-form { display: flex; gap: 0.6rem; margin-top: 0.9rem; }
+  .key-form input {
+    flex: 1; min-width: 0; background: rgba(201,164,92,0.06); border: 1px solid rgba(201,164,92,0.3);
+    border-radius: 999px; color: var(--text-light); font-family: 'Gowun Batang', serif; font-size: 0.85rem;
+    padding: 0.6rem 1rem;
+  }
+  .key-form input:focus { outline: none; border-color: var(--gold); }
+  .key-form button { padding: 0.6rem 1.3rem; font-size: 0.85rem; }
+  .key-note { font-size: 0.72rem; color: var(--text-dim); line-height: 1.7; margin-top: 0.6rem; text-align: center; }
+  .key-note a { color: var(--gold-soft); }
+
+  @media (prefers-reduced-motion: reduce) { .shuffle-deck span { animation: none; } .slot-inner, .slot, .pile-card { transition: none; } }
+</style>
+</head>
+<body>
+  <main class="frame">
+    <p class="eyebrow">켈틱 크로스</p>
+    <h1>C-Tarot</h1>
+    <p class="lede">묻고 싶은 것을 떠올린 뒤, 일곱 장을 펼쳐보세요.</p>
+
+    <p class="question-line" id="questionLine" hidden></p>
+
+    <div class="cross">
+      <div class="slot pos-top" id="s5"><div class="slot-inner"><span class="pos-label">V · 조언</span><span class="card-name"></span><span class="card-dir"></span></div></div>
+      <div class="slot result pos-result" id="s7"><div class="slot-inner"><span class="pos-label">VII · 결과</span><span class="card-name"></span><span class="card-dir"></span></div></div>
+      <div class="slot pos-left" id="s3"><div class="slot-inner"><span class="pos-label">III · 과거</span><span class="card-name"></span><span class="card-dir"></span></div></div>
+      <div class="center">
+        <div class="slot vertical" id="s1"><div class="slot-inner"><span class="pos-label">I · 현재</span><span class="card-name"></span><span class="card-dir"></span></div></div>
+        <div class="slot horizontal" id="s2"><div class="slot-inner"><span class="pos-label">II · 방해</span><span class="card-name"></span><span class="card-dir"></span></div></div>
+      </div>
+      <div class="slot pos-right" id="s6"><div class="slot-inner"><span class="pos-label">VI · 미래</span><span class="card-name"></span><span class="card-dir"></span></div></div>
+      <div class="slot pos-bottom" id="s4"><div class="slot-inner"><span class="pos-label">IV · 최근</span><span class="card-name"></span><span class="card-dir"></span></div></div>
+    </div>
+
+    <div class="stage">
+      <p class="status" id="status">어떻게 뽑을까요?</p>
+      <div class="phase" id="intro">
+        <textarea id="questionInput" rows="2" placeholder="마음에 둔 물음을 적어주세요&#10;비워두면 오늘의 전반적인 흐름을 읽어요"></textarea>
+        <div class="choices"><button id="shuffleBtn">카드 섞기</button></div>
+        <p class="hint">카드 펼치기와 자리별 풀이는 그대로 볼 수 있어요.<br>'해석 읽기'(AI 종합 해석)에는 Claude API 키가 필요해요.</p>
+      </div>
+
+      <div class="phase" id="ready" hidden>
+        <div class="choices">
+          <button class="ghost" id="reshuffleBtn">다시 섞기</button>
+          <button data-mode="pick">직접 고르기</button>
+          <button data-mode="auto">맡기기</button>
+        </div>
+      </div>
+      <div class="phase" id="shuffle" hidden><div class="shuffle-deck"><span></span><span></span><span></span><span></span><span></span></div></div>
+      <div class="phase" id="pile" hidden><div class="pile-cards" id="pileScroll"><div class="pile-track" id="pileTrack"></div></div></div>
+      <div class="phase" id="finish" hidden><div class="choices"><button id="readBtn">해석 읽기</button><button class="ghost" id="resetBtn">다시 펼치기</button></div></div>
+    </div>
+
+    <div class="reading" id="reading"></div>
+    <div id="aiReading"></div>
+  </main>
+
+<script>
+  // ── 카드 덱 ──
+  const majors = ["바보","마법사","여사제","여황제","황제","교황","연인","전차","힘",
+    "은둔자","운명의 수레바퀴","정의","매달린 사람","죽음","절제","악마","탑","별","달","태양","심판","세계"];
+  const suits = ["완드","컵","소드","펜타클"];
+  const ranks = ["에이스","2","3","4","5","6","7","8","9","10","페이지","기사","여왕","왕"];
+  function buildDeck() { const d = [...majors]; for (const s of suits) for (const r of ranks) d.push(s + " " + r); return d; }
+  function shuffle(a) { for (let i = a.length-1; i>0; i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+  // ── 카드 의미 (쿠키가 정하는 데이터: [정방향, 역방향]) ──
+  const meanings = {
+    "바보": ["순수한 시작과 모험", "무모함, 망설이는 첫발"],
+    "마법사": ["의지와 창조의 힘", "흩어진 힘, 미숙한 재능"],
+    "여사제": ["직관과 내면의 지혜", "막힌 직관, 감춰진 비밀"],
+    "여황제": ["풍요와 따뜻한 돌봄", "소진, 돌봄의 정체"],
+    "황제": ["질서와 안정된 권위", "경직, 지나친 통제"],
+    "교황": ["가르침과 전통", "낡은 규범, 형식에 갇힘"],
+    "연인": ["결합과 진심의 선택", "어긋남, 마음의 갈등"],
+    "전차": ["의지로 나아가는 승리", "방향 상실, 통제 불능"],
+    "힘": ["부드러운 용기와 인내", "자기 의심, 흔들리는 마음"],
+    "은둔자": ["성찰과 내면의 빛", "고립, 회피하는 물러섬"],
+    "운명의 수레바퀴": ["전환과 새로운 흐름", "정체, 반복되는 악순환"],
+    "정의": ["균형과 진실", "불균형, 책임의 회피"],
+    "매달린 사람": ["멈춤과 관점의 전환", "헛된 희생, 고인 정체"],
+    "죽음": ["끝맺음과 재생", "붙듦, 변화에 대한 거부"],
+    "절제": ["조화와 중용", "과함, 무너진 균형"],
+    "악마": ["집착과 욕망의 사슬", "해방, 속박에서 벗어남"],
+    "탑": ["갑작스러운 붕괴와 각성", "미뤄둔 위기, 번지는 균열"],
+    "별": ["희망과 치유", "흐려진 빛, 잦아든 기대"],
+    "달": ["불안과 무의식의 환상", "걷히는 안개, 드러나는 진실"],
+    "태양": ["기쁨과 생명력", "가려진 빛, 더딘 행복"],
+    "심판": ["각성과 결산의 부름", "외면한 부름, 자책"],
+    "세계": ["완성과 통합", "미완, 매듭짓지 못한 일"],
+    "완드 에이스": ["새로운 영감과 시작", "막힌 의욕, 미뤄진 시작"],
+    "완드 2": ["계획과 먼 곳을 향한 시야", "망설임, 좁아진 시야"],
+    "완드 3": ["확장과 전망", "지연, 어긋난 기대"],
+    "완드 4": ["안정과 축하", "흔들리는 토대, 미완의 기쁨"],
+    "완드 5": ["경쟁과 마찰", "회피한 갈등, 안으로 곪은 긴장"],
+    "완드 6": ["승리와 인정", "인정받지 못함, 부푼 자만"],
+    "완드 7": ["자기 자리를 지키는 도전", "압도당함, 물러서는 마음"],
+    "완드 8": ["빠른 진전과 소식", "지연, 조급한 서두름"],
+    "완드 9": ["끈기와 경계", "소진, 지나친 방어"],
+    "완드 10": ["짊어진 과중한 짐", "내려놓음, 번아웃의 끝"],
+    "완드 페이지": ["열정 어린 소식과 호기심", "산만함, 미숙한 열의"],
+    "완드 기사": ["모험과 거침없는 돌진", "성급함, 무모한 질주"],
+    "완드 여왕": ["자신감과 따뜻한 카리스마", "불안, 마음속 질투"],
+    "완드 왕": ["비전과 리더십", "독선, 성급한 결정"],
+    "컵 에이스": ["새로운 사랑과 감정의 샘", "막힌 감정, 메마른 마음"],
+    "컵 2": ["결합과 마음의 조화", "어긋남, 식어버린 관계"],
+    "컵 3": ["우정과 함께하는 축하", "지나침, 균열이 가는 사이"],
+    "컵 4": ["권태와 무관심", "다시 눈뜨는 관심, 새 기회"],
+    "컵 5": ["상실과 후회", "회복, 남은 것에 돌리는 눈길"],
+    "컵 6": ["추억과 순수함", "과거에 매인 마음, 향수"],
+    "컵 7": ["환상과 너무 많은 선택", "현실 직시, 분명해진 결단"],
+    "컵 8": ["더 깊은 것을 찾아 떠남", "머뭇거림, 놓지 못한 미련"],
+    "컵 9": ["만족과 소원의 성취", "헛된 만족, 채워지지 않는 욕심"],
+    "컵 10": ["가족과 정서적 충만", "깨진 조화, 겉도는 행복"],
+    "컵 페이지": ["감성 어린 소식과 영감", "미성숙, 넘치는 감정"],
+    "컵 기사": ["낭만과 다가오는 제안", "변덕, 공허한 약속"],
+    "컵 여왕": ["공감과 깊은 직관", "감정에 잠김, 기대는 마음"],
+    "컵 왕": ["감정의 균형과 너그러움", "억눌린 감정, 차가운 거리"],
+    "소드 에이스": ["명료함과 돌파", "혼란, 그릇된 판단"],
+    "소드 2": ["교착과 미룬 결정", "풀리는 교착, 마주한 진실"],
+    "소드 3": ["상심과 아픔", "회복, 아픔에서 벗어남"],
+    "소드 4": ["휴식과 회복", "이어진 정체, 멈추지 못한 소진"],
+    "소드 5": ["갈등과 승패의 대가", "화해, 정리되는 다툼"],
+    "소드 6": ["전환과 나아감", "떠나지 못함, 고인 자리"],
+    "소드 7": ["전략과 은밀한 기만", "들킨 속임, 깨어난 양심"],
+    "소드 8": ["속박과 무력감", "풀려남, 스스로의 자각"],
+    "소드 9": ["불안과 깊은 근심", "가시는 불안, 돋는 희망"],
+    "소드 10": ["종결과 바닥", "회복의 시작, 다시 일어섬"],
+    "소드 페이지": ["경계와 날선 호기심", "험담, 흩어진 집중"],
+    "소드 기사": ["결단과 거침없는 돌진", "성급함, 무모한 공격"],
+    "소드 여왕": ["명석함과 독립", "냉정함, 외로운 고립"],
+    "소드 왕": ["논리와 권위", "독단, 차가운 판단"],
+    "펜타클 에이스": ["새로운 기회와 풍요", "놓친 기회, 불안정"],
+    "펜타클 2": ["균형과 유연한 조율", "과부하, 무너진 저울"],
+    "펜타클 3": ["협업과 무르익는 기술", "엇갈린 손발, 미숙함"],
+    "펜타클 4": ["안정과 소유", "집착, 움켜쥔 인색함"],
+    "펜타클 5": ["결핍과 곤궁", "회복, 내미는 도움의 손"],
+    "펜타클 6": ["나눔과 관용", "불공평, 조건 붙은 호의"],
+    "펜타클 7": ["인내와 무르익길 기다림", "조급함, 헛수고"],
+    "펜타클 8": ["숙련과 꾸준한 노력", "무성의, 멈춘 발전"],
+    "펜타클 9": ["자립과 누리는 풍요", "과시, 불안한 풍족"],
+    "펜타클 10": ["안정과 물려받은 유산", "재정 불안, 가족의 갈등"],
+    "펜타클 페이지": ["배움과 새로운 계획", "산만함, 미뤄둔 게으름"],
+    "펜타클 기사": ["성실과 꾸준한 근면", "정체, 굳어진 고집"],
+    "펜타클 여왕": ["실속과 따뜻한 돌봄", "과부하, 소홀해진 자신"],
+    "펜타클 왕": ["성취와 안정된 풍요", "물질에 대한 집착, 완고함"]
+  };
+
+  // ── 뿌리 어휘 (라이더-웨이트 전통 키워드: [정방향, 역방향]) ──
+  // 해석의 깊이를 위한 참고 재료. 문장은 한국어로 직접 쓰임.
+  const roots = {
+    "바보": ["new beginnings, innocence, spontaneity, free spirit", "recklessness, hesitation, naivety, risk-taking"],
+    "마법사": ["manifestation, willpower, resourcefulness, skill", "untapped talent, manipulation, scattered energy"],
+    "여사제": ["intuition, inner voice, mystery, the subconscious", "blocked intuition, hidden agendas, secrets withheld"],
+    "여황제": ["abundance, nurturing, fertility, sensuality", "creative block, dependence, neglect of self-care"],
+    "황제": ["authority, structure, stability, protection", "rigidity, domination, excessive control"],
+    "교황": ["tradition, spiritual guidance, conformity, learning", "rebellion, outdated values, restriction"],
+    "연인": ["love, harmony, alignment of values, choices", "disharmony, imbalance, misaligned values"],
+    "전차": ["determination, victory, willpower, self-discipline", "lack of direction, aggression, loss of control"],
+    "힘": ["courage, compassion, inner strength, patience", "self-doubt, weakness, raw emotion untamed"],
+    "은둔자": ["introspection, solitude, inner guidance, wisdom", "isolation, withdrawal, loneliness"],
+    "운명의 수레바퀴": ["change, cycles, destiny, turning point", "bad luck, resistance to change, stagnant cycle"],
+    "정의": ["fairness, truth, accountability, cause and effect", "injustice, dishonesty, avoiding accountability"],
+    "매달린 사람": ["surrender, new perspective, pause, letting go", "stalling, needless sacrifice, fear of release"],
+    "죽음": ["endings, transformation, transition, renewal", "resistance to change, clinging, stagnation"],
+    "절제": ["balance, moderation, patience, blending", "excess, imbalance, lack of long-term vision"],
+    "악마": ["attachment, addiction, restriction, shadow self", "release, breaking free, reclaiming power"],
+    "탑": ["sudden upheaval, revelation, awakening, collapse", "averted disaster, delayed crisis, fear of change"],
+    "별": ["hope, renewal, faith, serenity, inspiration", "lost faith, despair, disconnection"],
+    "달": ["illusion, intuition, the unconscious, anxiety", "release of fear, clarity emerging, truth revealed"],
+    "태양": ["joy, success, vitality, positivity", "clouded joy, delayed success, dimmed optimism"],
+    "심판": ["reckoning, awakening, absolution, calling", "self-doubt, ignoring the call, harsh self-judgment"],
+    "세계": ["completion, integration, accomplishment, wholeness", "incompletion, loose ends, delayed closure"],
+    "완드 에이스": ["inspiration, new opportunity, creative spark", "delayed start, lack of motivation, false start"],
+    "완드 2": ["planning, future vision, decisions, discovery", "fear of the unknown, playing it safe, indecision"],
+    "완드 3": ["expansion, foresight, progress, looking ahead", "delays, obstacles, frustrated plans"],
+    "완드 4": ["celebration, harmony, homecoming, stability", "shaky foundation, transition, unfinished joy"],
+    "완드 5": ["competition, conflict, tension, rivalry", "avoided conflict, inner tension, resolution"],
+    "완드 6": ["victory, recognition, public success", "lack of recognition, fall from grace, ego"],
+    "완드 7": ["defending position, perseverance, challenge", "overwhelm, giving up ground, exhaustion"],
+    "완드 8": ["swift movement, momentum, news arriving", "delays, frustration, haste without direction"],
+    "완드 9": ["resilience, persistence, last stand, boundaries", "burnout, paranoia, defensiveness"],
+    "완드 10": ["burden, heavy responsibility, hard work", "release of burden, delegation, collapse"],
+    "완드 페이지": ["enthusiasm, exploration, fresh ideas, news", "scattered energy, immaturity, false starts"],
+    "완드 기사": ["adventure, passion, bold action, energy", "haste, recklessness, scattered passion"],
+    "완드 여왕": ["confidence, warmth, determination, charisma", "insecurity, jealousy, demanding nature"],
+    "완드 왕": ["visionary leadership, boldness, entrepreneurship", "impulsiveness, domineering, ruthless ambition"],
+    "컵 에이스": ["new love, emotional awakening, compassion", "blocked emotions, emptiness, repressed feelings"],
+    "컵 2": ["partnership, mutual attraction, unity", "imbalance in relationship, broken bond, tension"],
+    "컵 3": ["friendship, celebration, community, joy", "overindulgence, gossip, isolation from the group"],
+    "컵 4": ["apathy, contemplation, missed opportunity", "renewed interest, awakening, new openness"],
+    "컵 5": ["loss, grief, regret, focusing on the negative", "acceptance, moving on, finding what remains"],
+    "컵 6": ["nostalgia, childhood memories, innocence, reunion", "stuck in the past, unrealistic nostalgia"],
+    "컵 7": ["choices, fantasy, illusion, wishful thinking", "clarity, decisive choice, facing reality"],
+    "컵 8": ["walking away, seeking deeper meaning, departure", "fear of leaving, lingering attachment, avoidance"],
+    "컵 9": ["contentment, satisfaction, wishes fulfilled", "smugness, dissatisfaction, hollow pleasure"],
+    "컵 10": ["emotional fulfillment, family harmony, bliss", "broken harmony, disconnection, surface happiness"],
+    "컵 페이지": ["creative messages, intuition stirring, sensitivity", "emotional immaturity, moodiness, blocked creativity"],
+    "컵 기사": ["romance, charm, an offer or proposal, idealism", "moodiness, unrealistic promises, fickleness"],
+    "컵 여왕": ["compassion, emotional depth, intuitive care", "emotional overwhelm, codependency, insecurity"],
+    "컵 왕": ["emotional balance, diplomacy, generosity", "repressed emotion, coldness, manipulation"],
+    "소드 에이스": ["clarity, breakthrough, truth, mental focus", "confusion, clouded judgment, misused power"],
+    "소드 2": ["stalemate, difficult choice, avoidance", "indecision lifting, truth confronted, release"],
+    "소드 3": ["heartbreak, sorrow, painful truth", "recovery, forgiveness, releasing pain"],
+    "소드 4": ["rest, recovery, contemplation, retreat", "restlessness, burnout, stalled recovery"],
+    "소드 5": ["conflict, defeat, hollow victory, discord", "reconciliation, making amends, moving past conflict"],
+    "소드 6": ["transition, moving on, gradual healing", "resistance to moving on, unfinished business"],
+    "소드 7": ["strategy, deception, acting alone, cunning", "exposed deceit, conscience, coming clean"],
+    "소드 8": ["restriction, self-imposed limits, helplessness", "liberation, new perspective, self-acceptance"],
+    "소드 9": ["anxiety, worry, sleepless nights, dread", "easing anxiety, hope returning, facing fears"],
+    "소드 10": ["painful ending, rock bottom, betrayal", "recovery beginning, rising again, survival"],
+    "소드 페이지": ["curiosity, vigilance, new ideas, mental energy", "gossip, scattered thoughts, hasty words"],
+    "소드 기사": ["decisive action, ambition, swift pursuit", "impulsiveness, aggression, burnout from speed"],
+    "소드 여왕": ["clear judgment, independence, direct truth", "coldness, bitterness, harsh words"],
+    "소드 왕": ["intellectual authority, truth, ethical clarity", "tyranny, cold logic, abuse of power"],
+    "펜타클 에이스": ["new opportunity, prosperity, manifestation", "missed opportunity, scarcity mindset, instability"],
+    "펜타클 2": ["balance, adaptability, juggling priorities", "overload, disorganization, imbalance"],
+    "펜타클 3": ["teamwork, collaboration, skill-building", "misaligned teamwork, lack of cohesion, mediocrity"],
+    "펜타클 4": ["security, control, conservation, holding on", "greed, possessiveness, fear of loss"],
+    "펜타클 5": ["hardship, scarcity, feeling left out", "recovery, help arriving, end of hardship"],
+    "펜타클 6": ["generosity, charity, balanced giving", "strings attached, inequality, one-sided giving"],
+    "펜타클 7": ["patience, long-term view, awaiting harvest", "impatience, wasted effort, poor investment"],
+    "펜타클 8": ["craftsmanship, diligence, mastery in progress", "half-hearted effort, stalled growth, perfectionism"],
+    "펜타클 9": ["self-sufficiency, earned luxury, independence", "showiness, insecurity beneath abundance"],
+    "펜타클 10": ["legacy, family wealth, lasting stability", "financial insecurity, family conflict, broken legacy"],
+    "펜타클 페이지": ["new learning, ambition, practical planning", "procrastination, distraction, lack of follow-through"],
+    "펜타클 기사": ["diligence, routine, steady progress", "stagnation, stubbornness, monotony"],
+    "펜타클 여왕": ["practical care, resourcefulness, warm security", "self-neglect, overextension, imbalance of care"],
+    "펜타클 왕": ["wealth, accomplishment, reliable success", "greed, stubbornness, obsession with status"]
+  };
+
+  // ── 자리 정보 ──
+  const slotIds  = ["s1","s2","s3","s4","s5","s6","s7"];
+  const roman    = ["I","II","III","IV","V","VI","VII"];
+  const posName  = ["현재 상황","방해 요소","과거 경험","최근 기억","해결 조언","다가올 상황","종합 결과"];
+  const posDesc  = ["질문자가 지금 놓인 자리","현재 가로막고 있는 것","이 일과 얽힌 과거의 경험이나 기억","최근의 일 중 관련된 것","고민을 풀어가는 과정에 대한 조언","가까운 미래의 상황에 대한 조언","여섯 자리를 아울러 읽는 결말"];
+  const lenses   = ["지금 당신을 둘러싼 기운","앞을 가로막고 선 것","지나온 길에 남은 자취","최근 곁에 머문 기운","풀어가며 새길 마음","곧 다가올 흐름","모든 자리를 아울러 향하는 곳"];
+
+  // ── 상태 ──
+  let deck = [], pickIndex = 0, slotIndex = 0, drawn = [], question = "";
+  const statusEl = document.getElementById("status");
+  const phases = { intro: document.getElementById("intro"), ready: document.getElementById("ready"), shuffle: document.getElementById("shuffle"), pile: document.getElementById("pile"), finish: document.getElementById("finish") };
+  function showPhase(name) { for (const k in phases) phases[k].hidden = (k !== name); }
+
+  function buildReading() {
+    const wrap = document.getElementById("reading");
+    wrap.innerHTML = "";
+    for (let i = 0; i < 7; i++) {
+      const row = document.createElement("div");
+      row.className = "reading-row"; row.dataset.i = i;
+      row.innerHTML = '<div class="r-head"><span class="r-num">' + roman[i] + '</span><span class="r-name">' + posName[i] + '</span><span class="r-card"></span></div><div class="r-body">' + posDesc[i] + '</div>';
+      wrap.appendChild(row);
+    }
+  }
+
+  function resetCross() {
+    slotIds.forEach(id => {
+      const slot = document.getElementById(id);
+      slot.classList.remove("filled", "next");
+      const art = slot.querySelector(".card-art");
+      if (art) art.remove();
+      slot.querySelector(".card-name").textContent = "";
+      const dir = slot.querySelector(".card-dir"); dir.textContent = ""; dir.classList.remove("rev");
+    });
+    drawn = [];
+    buildReading();
+    document.getElementById("aiReading").innerHTML = "";
+  }
+
+  // ── 카드 그림: 코드가 직접 그리는 잉크·금빛 덱 ──
+  const romanAll = ["0","I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII","XIII","XIV","XV","XVI","XVII","XVIII","XIX","XX","XXI"];
+  const majorGlyphs = ["✧","✦","☽","❀","▣","✛","♡","◆","∞","☆","◐","⚖","Ω","†","≈","▼","⚡","★","☾","☀","◎","◯"];
+
+  // 슈트 문양 하나를 (x, y) 자리에 s 배율로
+  function suitMark(suit, x, y, s) {
+    let body = "";
+    if (suit === "완드")
+      body = '<rect x="-1.3" y="-8" width="2.6" height="16" rx="1.3" fill="#8a6d3b"/><circle cx="0" cy="-8" r="2.1" fill="#c9a45c"/>';
+    else if (suit === "컵")
+      body = '<path d="M-5.5,-6 Q-5.5,1.5 0,1.5 Q5.5,1.5 5.5,-6 Z" fill="#c9a45c"/><rect x="-1" y="1.5" width="2" height="4.2" fill="#c9a45c"/><rect x="-3.8" y="5.7" width="7.6" height="1.5" rx="0.75" fill="#c9a45c"/>';
+    else if (suit === "소드")
+      body = '<polygon points="0,-8.5 1.5,3.5 -1.5,3.5" fill="#7e8aa6"/><rect x="-4" y="3.5" width="8" height="1.4" rx="0.7" fill="#c9a45c"/><circle cx="0" cy="6.6" r="1.5" fill="#c9a45c"/>';
+    else // 펜타클
+      body = '<circle r="6.5" fill="none" stroke="#c9a45c" stroke-width="1.3"/><path d="M0,-5 L2.9,4 L-4.8,-1.5 L4.8,-1.5 L-2.9,4 Z" fill="#c9a45c"/>';
+    return '<g transform="translate(' + x + ',' + y + ') scale(' + s + ')">' + body + '</g>';
+  }
+
+  // 핍 카드(에이스~10)의 전통적인 문양 배치
+  const pipLayouts = {
+    1:  { s: 1.8,  p: [[35,52]] },
+    2:  { s: 1.1,  p: [[35,26],[35,78]] },
+    3:  { s: 1.0,  p: [[35,20],[35,52],[35,84]] },
+    4:  { s: 0.95, p: [[21,26],[49,26],[21,78],[49,78]] },
+    5:  { s: 0.9,  p: [[21,24],[49,24],[35,52],[21,80],[49,80]] },
+    6:  { s: 0.85, p: [[21,20],[49,20],[21,52],[49,52],[21,84],[49,84]] },
+    7:  { s: 0.8,  p: [[21,18],[49,18],[35,36],[21,54],[49,54],[21,86],[49,86]] },
+    8:  { s: 0.75, p: [[21,16],[49,16],[21,40],[49,40],[21,64],[49,64],[21,88],[49,88]] },
+    9:  { s: 0.7,  p: [[19,20],[35,20],[51,20],[19,52],[35,52],[51,52],[19,84],[35,84],[51,84]] },
+    10: { s: 0.68, p: [[21,16],[49,16],[35,30],[21,44],[49,44],[21,68],[49,68],[35,76],[21,90],[49,90]] }
+  };
+
+  // 궁정 카드의 머리 표식
+  const courtMarks = {
+    "페이지": '<circle cx="35" cy="17" r="2.2" fill="#c9a45c"/>',
+    "기사":   '<path d="M28,21 L35,12 L42,21" stroke="#c9a45c" stroke-width="2.4" fill="none" stroke-linecap="round"/>',
+    "여왕":   '<path d="M27,20 Q35,10 43,20 Z" fill="#c9a45c"/><circle cx="35" cy="9" r="1.4" fill="#c9a45c"/>',
+    "왕":     '<path d="M26,21 L29,11 L35,19 L41,11 L44,21 Z" fill="#c9a45c"/>'
+  };
+
+  function cardArt(card) {
+    const frame = '<rect x="3.5" y="3.5" width="63" height="97" rx="5" fill="none" stroke="rgba(156,128,73,0.55)" stroke-width="1"/>';
+    let inner = "";
+    const mi = majors.indexOf(card);
+    if (mi >= 0) {
+      // 메이저: 번호 + 고유 문장 + 귀퉁이 별
+      inner = '<text x="35" y="17" text-anchor="middle" font-size="9" fill="#9c8049" font-family="serif">' + romanAll[mi] + '</text>'
+            + '<text x="35" y="64" text-anchor="middle" font-size="32" fill="#2a2f47" font-family="serif">' + majorGlyphs[mi] + '</text>'
+            + '<circle cx="13" cy="91" r="1.1" fill="#c9a45c"/><circle cx="57" cy="91" r="1.1" fill="#c9a45c"/>'
+            + '<circle cx="13" cy="13" r="1.1" fill="#c9a45c"/><circle cx="57" cy="13" r="1.1" fill="#c9a45c"/>';
+    } else {
+      const parts = card.split(" ");
+      const suit = parts[0], rank = parts[1];
+      const ri = ranks.indexOf(rank);
+      if (ri < 10) {
+        // 핍 카드: 문양을 숫자만큼 배열
+        const lay = pipLayouts[ri + 1];
+        inner = lay.p.map(pt => suitMark(suit, pt[0], pt[1], lay.s)).join("");
+      } else {
+        // 궁정 카드: 머리 표식 + 큰 문양
+        inner = courtMarks[rank] + suitMark(suit, 35, 60, 1.9);
+      }
+    }
+    return '<svg viewBox="0 0 70 104" xmlns="http://www.w3.org/2000/svg">' + frame + inner + '</svg>';
+  }
+
+  // 한 자리에 카드를 그려넣기 (새로 뽑을 때도, 기억에서 되살릴 때도 사용)
+  function renderSlot(index, card, reversed) {
+    const slot = document.getElementById(slotIds[index]);
+    const inner = slot.querySelector(".slot-inner");
+
+    let art = inner.querySelector(".card-art");
+    if (!art) {
+      art = document.createElement("div");
+      art.className = "card-art";
+      inner.insertBefore(art, inner.querySelector(".card-name"));
+    }
+    art.classList.toggle("rev", reversed);
+    art.innerHTML = cardArt(card);
+    slot.querySelector(".card-name").textContent = card;
+    const dir = slot.querySelector(".card-dir");
+    dir.textContent = reversed ? "역방향" : "정방향";
+    dir.classList.toggle("rev", reversed);
+    slot.classList.add("filled");
+    slot.classList.remove("next");
+
+    const pair = meanings[card] || ["(준비 중)", "(준비 중)"];
+    const meaning = pair[reversed ? 1 : 0];
+    const row = document.querySelector('.reading-row[data-i="' + index + '"]');
+    const rc = row.querySelector(".r-card");
+    rc.textContent = card + (reversed ? " · 역" : " · 정");
+    rc.classList.toggle("rev", reversed);
+    row.querySelector(".r-body").textContent = lenses[index] + " — " + meaning;
+    row.classList.add("revealed");
+
+    const rootPair = roots[card] || ["", ""];
+    drawn[index] = { pos: posName[index], desc: posDesc[index], card: card, reversed: reversed, meaning: meaning, root: rootPair[reversed ? 1 : 0] };
+  }
+
+  function fillSlot(index) {
+    const card = deck[pickIndex++];
+    const reversed = Math.random() < 0.5;
+    renderSlot(index, card, reversed);
+  }
+
+  // 펼침을 기억해두기 — 새로고침돼도 되살릴 수 있게 (브라우저 localStorage 사용)
+  function saveSpread() {
+    try {
+      localStorage.setItem("c-tarot-last", JSON.stringify({ question: question, drawn: drawn, t: Date.now() }));
+    } catch (e) { /* 저장이 안 되는 환경이면 조용히 넘어감 */ }
+  }
+
+  // 한 시간 안의 펼침이 기억에 있으면 되살리기
+  function restoreSpread() {
+    try {
+      const saved = localStorage.getItem("c-tarot-last");
+      if (!saved) return;
+      const data = JSON.parse(saved);
+      if (!data.drawn || data.drawn.length !== 7) return;
+      if (Date.now() - (data.t || 0) > 3600000) return;
+      question = data.question || "";
+      const qLine = document.getElementById("questionLine");
+      if (question) { qLine.textContent = question; qLine.hidden = false; }
+      data.drawn.forEach((d, i) => renderSlot(i, d.card, d.reversed));
+      statusEl.textContent = "조금 전의 펼침을 그대로 불러왔어요";
+      showPhase("finish");
+    } catch (e) { /* 기억이 없으면 첫 화면 그대로 */ }
+  }
+
+  function markNext() {
+    slotIds.forEach(id => document.getElementById(id).classList.remove("next"));
+    if (slotIndex < slotIds.length) {
+      document.getElementById(slotIds[slotIndex]).classList.add("next");
+      statusEl.textContent = "[ " + posName[slotIndex] + " ] 자리를 골라주세요";
+    }
+  }
+
+  // 섞기: 물음을 읽고 덱을 섞은 뒤, 갈림길(ready)로
+  function doShuffle(first) {
+    if (first) {
+      resetCross();
+      question = document.getElementById("questionInput").value.trim();
+      const qLine = document.getElementById("questionLine");
+      if (question) { qLine.textContent = question; qLine.hidden = false; }
+      else { qLine.hidden = true; }
+    }
+    deck = shuffle(buildDeck());
+    pickIndex = 0; slotIndex = 0;
+    statusEl.textContent = "카드를 섞는 중…";
+    showPhase("shuffle");
+    setTimeout(() => {
+      statusEl.textContent = "마음이 모일 때까지 더 섞어도 좋아요";
+      showPhase("ready");
+    }, 1400);
+  }
+
+  function chooseMode(mode) {
+    if (mode === "auto") autoReveal();
+    else startPicking();
+  }
+
+  function autoReveal() {
+    showPhase("finish");
+    statusEl.textContent = "카드가 펼쳐집니다…";
+    let i = 0;
+    const timer = setInterval(() => {
+      fillSlot(i); i++;
+      if (i >= slotIds.length) { clearInterval(timer); statusEl.textContent = "해석을 읽어보세요"; saveSpread(); }
+    }, 300);
+  }
+
+  function startPicking() { showPhase("pile"); buildPile(); markNext(); }
+  function buildPile() {
+    const track = document.getElementById("pileTrack");
+    track.innerHTML = "";
+    for (let k = 0; k < deck.length; k++) {   // 78장 전체를 나란히 펼침
+      const c = document.createElement("div");
+      c.className = "pile-card";
+      c.style.zIndex = k;
+      c.addEventListener("click", () => pickOne(c));
+      track.appendChild(c);
+    }
+    document.getElementById("pileScroll").scrollLeft = 0;
+  }
+  function pickOne(cardEl) {
+    if (cardEl.classList.contains("taken") || slotIndex >= slotIds.length) return;
+    cardEl.classList.add("taken");
+    fillSlot(slotIndex); slotIndex++;
+    if (slotIndex >= slotIds.length) { statusEl.textContent = "해석을 읽어보세요"; showPhase("finish"); saveSpread(); }
+    else markNext();
+  }
+
+  // ── 해석자에게 건넬 프롬프트 ──
+  function buildPrompt() {
+    const lines = drawn.map((d, i) =>
+      "[" + roman[i] + ". " + d.pos + "] " + d.card + " (" + (d.reversed ? "역방향" : "정방향") + ")\n" +
+      "  - 핵심 의미: " + d.meaning + "\n" +
+      "  - 전통 키워드(참고): " + d.root + "\n" +
+      "  - 이 자리의 뜻: " + d.desc
+    ).join("\n");
+    const qPart = question
+      ? "질문자의 물음은 다음과 같습니다: \"" + question + "\"\n\n"
+      : "질문자는 특정한 물음 없이 오늘의 전반적인 흐름을 묻고 있습니다.\n\n";
+    return "당신은 따뜻하고 사려 깊은 타로 해석자입니다. " + qPart +
+      "켈틱 크로스 변형 스프레드로 일곱 장이 다음과 같이 펼쳐졌습니다.\n\n" + lines +
+      "\n\n아래 지침을 지켜 해석해 주세요.\n" +
+      "- 모든 자리의 풀이를 질문자의 물음에 비추어 쓰세요. 일반론이 아니라, 이 물음에 대한 답으로 읽혀야 합니다.\n" +
+      "- 처음부터 자연스러운 한국어로 직접 쓰세요. 번역하지 말고, 번역투('그것은 ~을 의미합니다' 같은 문형)를 절대 쓰지 마세요.\n" +
+      "- '핵심 의미'를 해석의 중심으로 삼고, '전통 키워드'는 카드가 품어온 결을 깊이 헤아리는 참고로만 쓰세요. 영어 단어를 답에 노출하지 마세요.\n" +
+      "- 각 자리를 순서대로 짚으며, 그 카드가 그 자리와 방향에서 어떻게 읽히는지 풀어주세요. 자리마다 한두 문장이면 충분합니다.\n" +
+      "- 키워드를 그대로 나열하지 말고 흐르는 문장으로 녹여주세요. 조사를 정확히 맞춰주세요.\n" +
+      "- 자리의 성격과 카드 의미가 어긋날 때는 그 긴장까지 헤아려 자연스럽게 풀어주세요.\n" +
+      "- 마지막에 '총평'이라는 말머리로, 일곱 장을 하나로 아우르는 마무리를 두세 문장 덧붙여주세요.\n" +
+      "- 전체 분량은 공백 포함 600자 이내로, 반드시 총평까지 완결하세요. 길게 쓰다 끊기는 것보다 짧더라도 끝까지 매듭짓는 것이 중요합니다.\n" +
+      "- 별표(**)나 샵(#) 같은 마크다운 기호 없이 일반 텍스트로만 쓰세요. 자리 제목은 'I. 현재 상황 — 카드명 (방향)' 형식의 한 줄로 적으세요.\n" +
+      "- 단정 짓기보다 헤아리듯, 담백하고 따뜻한 어조로 써주세요. 군더더기 인사말은 빼고 해석만 적어주세요.";
+  }
+
+  // ── AI 해석: Claude API 직접 호출 (사용자 API 키 필요) ──
+  const API_KEY_STORAGE = "c-tarot-api-key";
+
+  function showKeyForm(message) {
+    const wrap = document.getElementById("aiReading");
+    const intro = message ? message + "\n\n" : "";
+    wrap.innerHTML =
+      '<div class="ai-title">해 석</div>' +
+      '<div class="ai-box">' + intro + 'AI 종합 해석을 읽으려면 Claude API 키가 필요해요.\n키는 이 브라우저에만 저장되고, 다른 곳으로 전송되지 않아요.</div>' +
+      '<div class="key-form"><input type="password" id="apiKeyInput" placeholder="sk-ant-api03-…"><button class="ghost" id="apiKeySave">저장하고 읽기</button></div>' +
+      '<p class="key-note">API 키는 <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>에서 발급받을 수 있어요.</p>';
+    document.getElementById("apiKeySave").addEventListener("click", () => {
+      const v = document.getElementById("apiKeyInput").value.trim();
+      if (!v) return;
+      try { localStorage.setItem(API_KEY_STORAGE, v); } catch (e) {}
+      interpret();
+    });
+  }
+
+  async function interpret() {
+    const apiKey = (function () {
+      try { return localStorage.getItem(API_KEY_STORAGE); } catch (e) { return null; }
+    })();
+    if (!apiKey) { showKeyForm(); return; }
+
+    const readBtn = document.getElementById("readBtn");
+    readBtn.disabled = true;
+    const wrap = document.getElementById("aiReading");
+    wrap.innerHTML = '<div class="ai-title">해 석</div><div class="ai-box loading" id="aiBox">해석을 써내려가는 중…</div>';
+    const box = document.getElementById("aiBox");
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
+        },
+        body: JSON.stringify({
+          model: "claude-opus-4-8",
+          max_tokens: 1500,
+          messages: [{ role: "user", content: buildPrompt() }]
+        })
+      });
+      if (res.status === 401) {
+        try { localStorage.removeItem(API_KEY_STORAGE); } catch (e) {}
+        showKeyForm("API 키가 유효하지 않아요. 다시 확인해서 입력해 주세요.");
+        return;
+      }
+      const data = await res.json();
+      if (data.type === "error") throw new Error(data.error && data.error.message);
+      const text = (data.content || []).filter(b => b.type === "text").map(b => b.text).join("\n").trim();
+      box.classList.remove("loading");
+      box.textContent = text || "해석을 받지 못했어요. 다시 시도해 주세요.";
+    } catch (e) {
+      box.classList.remove("loading");
+      box.textContent = "해석을 불러오지 못했어요. 인터넷 연결과 API 키를 확인하고 다시 시도해 주세요.";
+    } finally {
+      readBtn.disabled = false;
+      readBtn.textContent = "다시 해석 읽기";
+    }
+  }
+
+  document.getElementById("shuffleBtn").addEventListener("click", () => doShuffle(true));
+  document.getElementById("reshuffleBtn").addEventListener("click", () => doShuffle(false));
+  document.querySelectorAll("#ready button[data-mode]").forEach(btn => btn.addEventListener("click", () => chooseMode(btn.dataset.mode)));
+  document.getElementById("readBtn").addEventListener("click", interpret);
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    resetCross();
+    document.getElementById("questionLine").hidden = true;
+    statusEl.textContent = "어떻게 뽑을까요?";
+    showPhase("intro");
+    document.getElementById("readBtn").textContent = "해석 읽기";
+  });
+
+  buildReading();
+  restoreSpread();
+</script>
+</body>
+</html>
