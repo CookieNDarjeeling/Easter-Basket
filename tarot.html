@@ -149,7 +149,7 @@
       <div class="phase" id="intro">
         <textarea id="questionInput" rows="2" placeholder="마음에 둔 물음을 적어주세요&#10;비워두면 오늘의 전반적인 흐름을 읽어요"></textarea>
         <div class="choices"><button id="shuffleBtn">카드 섞기</button></div>
-        <p class="hint">카드 펼치기와 자리별 풀이는 그대로 볼 수 있어요.<br>'해석 읽기'(AI 종합 해석)에는 Claude API 키가 필요해요.</p>
+        <p class="hint">카드 펼치기와 자리별 풀이는 로그인 없이 볼 수 있어요.<br>'AI 종합 해석'은 본인 AI 계정에 한 번 연결(로그인)하면 이용할 수 있어요.</p>
       </div>
 
       <div class="phase" id="ready" hidden>
@@ -163,7 +163,7 @@
       <div class="phase" id="pile" hidden><div class="pile-cards" id="pileScroll"><div class="pile-track" id="pileTrack"></div></div></div>
       <div class="phase" id="finish" hidden>
         <div class="choices"><button id="readBtn">해석 읽기</button><button class="ghost" id="resetBtn">다시 펼치기</button></div>
-        <p class="hint">해석 읽기를 눌러도 펼쳐진 카드는 그대로 유지돼요.<br>API 키가 없으면 입력 안내가 먼저 나와요 — 키를 받아 와도 같은 카드로 해석합니다.</p>
+        <p class="hint">해석 읽기를 눌러도 펼쳐진 카드는 그대로 유지돼요.<br>처음이면 AI 계정 연결(로그인) 안내가 먼저 나오고, 연결해도 같은 카드로 해석합니다.</p>
       </div>
     </div>
 
@@ -609,9 +609,9 @@
     const intro = message ? message + "\n\n" : "";
     wrap.innerHTML =
       '<div class="ai-title">해 석</div>' +
-      '<div class="ai-box">' + intro + 'AI 종합 해석을 읽으려면 Claude API 키가 필요해요.\n키는 이 브라우저에만 저장되고, 다른 곳으로 전송되지 않아요.\n\n🃏 지금 펼친 카드는 그대로 저장되어 있어요 (1시간 보관).\n키 발급 페이지는 새 탭에서 열리며, 돌아와도 같은 카드로 해석합니다.</div>' +
-      '<div class="key-form"><input type="password" id="apiKeyInput" placeholder="sk-ant-api03-…"><button class="ghost" id="apiKeySave">저장하고 읽기</button></div>' +
-      '<p class="key-note">API 키는 <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>에서 발급받을 수 있어요. (새 탭에서 열려요)</p>';
+      '<div class="ai-box">' + intro + '일곱 장을 하나로 풀어주는 AI 종합 해석이에요.\n이용하려면 본인의 AI 계정에 한 번 로그인해서 \'연결 키\'를 붙여넣으면 돼요.\n연결 키는 이 기기에만 저장되고, 다른 곳으로 보내지 않아요.\n\n🃏 지금 펼친 카드는 그대로 저장돼 있어요 (1시간).\n로그인 페이지는 새 창에서 열리고, 돌아와도 같은 카드로 해석합니다.</div>' +
+      '<div class="key-form"><input type="password" id="apiKeyInput" placeholder="여기에 연결 키를 붙여넣기"><button class="ghost" id="apiKeySave">연결하고 해석 보기</button></div>' +
+      '<p class="key-note">처음이라면 <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>에서 무료로 가입·로그인한 뒤, \'API Key(연결 키)\'를 만들어 복사해 위에 붙여넣으세요. (새 창에서 열려요)</p>';
     document.getElementById("apiKeySave").addEventListener("click", () => {
       const v = document.getElementById("apiKeyInput").value.trim();
       if (!v) return;
@@ -648,7 +648,7 @@
       });
       if (res.status === 401) {
         try { localStorage.removeItem(API_KEY_STORAGE); } catch (e) {}
-        showKeyForm("API 키가 유효하지 않아요. 다시 확인해서 입력해 주세요.");
+        showKeyForm("연결 키가 올바르지 않아요. 다시 확인해서 붙여넣어 주세요.");
         return;
       }
       const data = await res.json();
@@ -658,7 +658,7 @@
       box.textContent = text || "해석을 받지 못했어요. 다시 시도해 주세요.";
     } catch (e) {
       box.classList.remove("loading");
-      box.textContent = "해석을 불러오지 못했어요. 인터넷 연결과 API 키를 확인하고 다시 시도해 주세요.";
+      box.textContent = "해석을 불러오지 못했어요. 인터넷 연결과 연결 키를 확인하고 다시 시도해 주세요.";
     } finally {
       readBtn.disabled = false;
       readBtn.textContent = "다시 해석 읽기";
