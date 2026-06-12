@@ -34,6 +34,14 @@
     const zodiac = ZODIAC[((y - 1900) % 12 + 12) % 12];
     const el = elementOf(y);
 
+    const prompt =
+      "제 사주(생년월일 기반)로 성격과 전반적인 운세를 풀이해 주세요.\n\n" +
+      "생년월일: " + dateStr + "\n" +
+      "띠: " + zodiac.a + "띠\n" +
+      "오행: " + el.name + "\n\n" +
+      "- 타고난 기질과 강점, 그리고 연애·일·건강의 전반적인 흐름을 부드럽게 권하는 어조로 풀어주세요.\n" +
+      "- 단정적인 예언이 아니라 재미로 보는 느낌으로, 자연스러운 한국어로 써주세요.";
+
     const result = document.getElementById("saju-result");
     result.innerHTML = `
       <div class="saju-block">
@@ -44,6 +52,7 @@
           <span class="saju-tag">행운의 방향: ${el.lucky}</span>
         </div>
         <p>${el.trait} 기질을 타고난 <strong>${zodiac.a}띠</strong>예요.</p>
+        ${window.EB_sharePrompt ? window.EB_sharePrompt(prompt, "이 사주 결과를 더 자세히 풀이받고 싶다면, 아래 내용을 복사해 평소 쓰는 AI에 붙여넣어 보세요.") : ""}
       </div>`;
   }
 

@@ -130,14 +130,18 @@
         '<div id="astro-ai-slot"></div>' +
       '</div>';
 
-    // 이미 받아둔 AI 해석이 있으면 보여주고, 없으면 버튼 제공
+    // 이미 받아둔 AI 해석이 있으면 보여주고, 없으면 (1)복사해서 내 AI로, (2)여기서 바로 보기 제공
     let cached = null;
     try { const v = localStorage.getItem(interpCacheKey(c)); if (v) cached = v; } catch (e) {}
     const slot = document.getElementById("astro-ai-slot");
     if (cached) {
       slot.innerHTML = '<div class="ai-divider">— 재미로 보는 AI 해석 —</div><div class="astro-ai">' + esc(cached) + '</div>';
     } else {
-      slot.innerHTML = '<button class="btn-ghost" id="astro-read">🔮 AI 해석 읽기</button>';
+      const share = window.EB_sharePrompt ? window.EB_sharePrompt(buildPrompt(c),
+        "키 없이 바로! 위 차트는 실제 계산값이라, 아래를 복사해 평소 쓰는 AI(챗GPT·Claude·제미나이 등)에 붙여넣으면 어디서든 해석을 받을 수 있어요.") : '';
+      slot.innerHTML = share +
+        '<div class="connect-divider">— 또는 여기서 바로 해석 보기 (AI 계정 연결) —</div>' +
+        '<button type="button" class="btn-ghost" id="astro-read">🔮 AI 해석 읽기</button>';
       document.getElementById("astro-read").addEventListener("click", () => startInterpret(c));
     }
   }

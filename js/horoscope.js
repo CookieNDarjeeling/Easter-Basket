@@ -138,11 +138,22 @@
     }
   }
 
+  function shareHoroPrompt(s) {
+    return "오늘(" + todayStr() + ") " + s.name + "(" + s.date + ")의 별자리 운세를 봐주세요.\n\n" +
+      "- 총운, 애정운, 금전운, 그리고 오늘의 조언으로 나눠서 한국어로 써주세요.\n" +
+      "- 재미로 보는 가벼운 콘텐츠이니 부드럽게 권하는 어조로 부탁해요.";
+  }
+
   function showConnect(s, message) {
     const intro = message ? '<p class="connect-msg">' + esc(message) + '</p>' : '';
+    const share = window.EB_sharePrompt ? window.EB_sharePrompt(shareHoroPrompt(s),
+      "키 없이 바로! 아래를 복사해 평소 쓰는 AI(챗GPT·Claude·제미나이 등)에 붙여넣으면 오늘의 운세를 받을 수 있어요.") : '';
     resultEl.innerHTML =
       '<div class="saju-block connect-block">' + intro +
-        '<p>오늘의 별자리 운세는 AI가 새로 써드려요. 처음 한 번만 본인 AI 계정에 로그인해 \'연결 키\'를 붙여넣으면, 다음부터는 별자리를 고르는 즉시 바로 떠요. 연결 키는 이 기기에만 저장됩니다.</p>' +
+        '<h3>' + s.emoji + ' ' + s.name + ' · 오늘의 운세</h3>' +
+        share +
+        '<div class="connect-divider">— 또는 여기서 바로 보기 (AI 계정 연결) —</div>' +
+        '<p>처음 한 번만 본인 AI 계정에 로그인해 \'연결 키\'를 붙여넣으면, 다음부터는 별자리를 고르는 즉시 바로 떠요. 연결 키는 이 기기에만 저장됩니다.</p>' +
         '<div class="connect-form"><input type="password" id="horoKeyInput" placeholder="여기에 연결 키를 붙여넣기"><button class="btn-ghost" id="horoKeySave">연결하고 운세 보기</button></div>' +
         '<p class="connect-note">처음이라면 <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>에서 무료로 가입·로그인한 뒤 \'API Key(연결 키)\'를 만들어 붙여넣으세요. 타로에서 이미 연결했다면 그대로 쓰여요.</p>' +
       '</div>';

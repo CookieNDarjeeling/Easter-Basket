@@ -36,6 +36,10 @@ js/recreation.js  레크레이션 로직
 js/main.js        탭 전환 + 타로 iframe 높이 맞춤
 ```
 
+> 🤖 **내 AI에게 해석 맡기기** — 사주·별자리·점성술 결과 아래에 "프롬프트 복사" 버튼이 있어,
+> 연결 키 없이도 그 내용을 복사해 평소 쓰는 AI(챗GPT·Claude·제미나이 등)에 붙여넣어 해석을 받을 수 있습니다.
+> (구현: `js/share.js`)
+
 > 🔮 타로의 **AI 종합 해석**과 ⭐ **별자리 운세**는 브라우저에서 Claude API(`api.anthropic.com`)를
 > 직접 호출합니다. '연결 키'(Claude API 키)가 필요하며, 키는 입력한 브라우저(localStorage)에만
 > 저장되고 타로·별자리 두 기능이 같은 키를 공유합니다. (저장 키 이름: `c-tarot-api-key`)
