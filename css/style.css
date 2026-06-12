@@ -170,6 +170,34 @@ textarea { width: 100%; resize: vertical; }
 .connect-note { font-size: 0.78rem; color: var(--muted); line-height: 1.7; }
 .connect-note a { color: var(--accent2); }
 
+/* 점성술 · 탄생차트 */
+.astro-form { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; margin: 1rem 0; }
+.astro-form label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.9rem; color: var(--muted); }
+.astro-form input, .astro-form select {
+  background: var(--bg-soft); border: 1px solid var(--accent2); border-radius: 10px;
+  color: var(--text); padding: 0.55rem 0.7rem; font-size: 1rem; font-family: inherit;
+}
+.astro-form input:focus, .astro-form select:focus { outline: none; border-color: var(--accent); }
+.astro-form .astro-checkbox { flex-direction: row; align-items: center; gap: 0.4rem; padding-bottom: 0.6rem; }
+.astro-form .astro-checkbox input { width: auto; }
+/* hidden 속성이 label의 display:flex에 밀리지 않도록 */
+.astro-form label[hidden] { display: none; }
+
+.natal-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin: 0.6rem 0 1rem; }
+.natal-card { background: var(--bg-soft); border: 1px solid rgba(182,156,255,0.25); border-radius: 14px; padding: 0.9rem 0.5rem; text-align: center; }
+.natal-card .nc-emoji { font-size: 1.4rem; display: block; line-height: 1.1; }
+.natal-card .nc-label { font-size: 0.72rem; color: var(--muted); display: block; margin-top: 0.3rem; }
+.natal-card .nc-sign { font-size: 0.98rem; font-weight: 700; color: var(--gold); display: block; margin-top: 0.15rem; }
+
+.natal-table { width: 100%; border-collapse: collapse; margin-top: 0.4rem; }
+.natal-table th, .natal-table td { text-align: left; padding: 0.45rem 0.6rem; border-bottom: 1px solid rgba(182,156,255,0.12); font-size: 0.92rem; }
+.natal-table th { color: var(--muted); font-weight: 700; font-size: 0.8rem; }
+.natal-note { font-size: 0.78rem; color: var(--muted); margin-top: 0.7rem; line-height: 1.6; }
+
+.ai-divider { text-align: center; color: var(--accent2); font-size: 0.78rem; letter-spacing: 0.2em; margin: 1.2rem 0 0.8rem; }
+.astro-ai { background: var(--card); border-radius: 12px; padding: 1.1rem 1.2rem; white-space: pre-wrap; line-height: 1.95; animation: pop 0.3s ease; }
+.astro-ai.loading { color: var(--muted); font-style: italic; }
+
 .rec-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
 @media (min-width: 680px) { .rec-grid { grid-template-columns: 1fr 1fr; } }
 .rec-card {

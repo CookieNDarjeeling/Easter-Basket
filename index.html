@@ -3,19 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🧺 이스터 바구니 — 타로 · 사주 · 별자리 · 레크레이션</title>
+  <title>🧺 이스터 바구니 — 타로 · 사주 · 별자리 · 점성술 · 레크레이션</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <header class="site-header">
     <h1>🧺 이스터 바구니</h1>
-    <p class="tagline">타로 · 사주 · 별자리 · 레크레이션, 즐길거리 모음</p>
+    <p class="tagline">타로 · 사주 · 별자리 · 점성술 · 레크레이션, 즐길거리 모음</p>
   </header>
 
   <nav class="tabs" role="tablist">
     <button class="tab is-active" data-tab="tarot" role="tab">🔮 타로</button>
     <button class="tab" data-tab="saju" role="tab">🌙 사주</button>
     <button class="tab" data-tab="horoscope" role="tab">⭐ 별자리</button>
+    <button class="tab" data-tab="astrology" role="tab">🔭 점성술</button>
     <button class="tab" data-tab="recreation" role="tab">🎲 레크레이션</button>
   </nav>
 
@@ -44,6 +45,34 @@
       <p class="hint">별자리를 고르면 오늘의 운세를 AI가 새로 써드려요. (재미로만 보세요!)</p>
       <div id="zodiac-grid" class="zodiac-grid"></div>
       <div id="horoscope-result" class="card-area"></div>
+    </section>
+
+    <!-- 점성술 · 탄생차트 (실제 천문 계산 + AI 해석) -->
+    <section id="astrology" class="panel">
+      <h2>🔭 점성술 · 탄생차트</h2>
+      <p class="hint">생년월일·출생시각·출생지를 넣으면 실제 천문 계산으로 탄생차트(해·달·상승궁·행성)를 뽑아드려요. 별자리·하우스 값은 실제 계산 결과, 해석은 재미로 보는 AI 풀이예요.</p>
+      <form id="astro-form" class="astro-form">
+        <label>생년월일
+          <input type="date" id="astro-date" required min="1900-01-01" max="2026-12-31" />
+        </label>
+        <label>출생 시각
+          <input type="time" id="astro-time" />
+        </label>
+        <label class="astro-checkbox">
+          <input type="checkbox" id="astro-notime" /> 시각 모름
+        </label>
+        <label>출생지
+          <select id="astro-city"></select>
+        </label>
+        <label id="astro-lat-wrap" hidden>위도
+          <input type="number" id="astro-lat" step="0.0001" placeholder="37.5665" />
+        </label>
+        <label id="astro-lon-wrap" hidden>경도
+          <input type="number" id="astro-lon" step="0.0001" placeholder="126.9780" />
+        </label>
+        <button type="submit" class="btn-primary">차트 계산</button>
+      </form>
+      <div id="astro-result" class="card-area"></div>
     </section>
 
     <!-- 레크레이션 -->
@@ -94,6 +123,7 @@
   <script src="data/content.js"></script>
   <script src="js/saju.js"></script>
   <script src="js/horoscope.js"></script>
+  <script src="js/astrology.js"></script>
   <script src="js/recreation.js"></script>
   <script src="js/main.js"></script>
 </body>
