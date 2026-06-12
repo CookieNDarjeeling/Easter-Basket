@@ -5,7 +5,8 @@
 (function () {
   const KEY_STORAGE = "c-tarot-api-key"; // 타로·별자리와 같은 연결 키 공유
   const MODEL = "claude-opus-4-8";
-  const LIB_URL = "https://esm.sh/circular-natal-horoscope-js@1.1.0";
+  // 천문 계산 라이브러리(circular-natal-horoscope-js)를 우리 저장소에서 자체 호스팅 — 외부 CDN 의존 제거
+  const LIB_SRC = "vendor/circular-natal-horoscope.js";
 
   const SIGN_KO = {
     aries: "양자리", taurus: "황소자리", gemini: "쌍둥이자리", cancer: "게자리",
@@ -74,8 +75,21 @@
   function signKo(s) { return SIGN_KO[String(s).toLowerCase()] || s; }
   function getKey() { try { return localStorage.getItem(KEY_STORAGE); } catch (e) { return null; } }
 
-  async function loadLib() {
-    if (!libPromise) libPromise = import(LIB_URL);
+  // 점성술 탭을 실제로 쓸 때만 라이브러리를 같은 출처에서 지연 로드한다.
+  function loadLib() {
+    if (window.CircularNatalHoroscope) return Promise.resolve(window.CircularNatalHoroscope);
+    if (!libPromise) {
+      libPromise = new Promise(function (resolve, reject) {
+        const s = document.createElement("script");
+        s.src = LIB_SRC;
+        s.onload = function () {
+          if (window.CircularNatalHoroscope) resolve(window.CircularNatalHoroscope);
+          else reject(new Error("lib missing after load"));
+        };
+        s.onerror = function () { reject(new Error("lib load failed")); };
+        document.head.appendChild(s);
+      });
+    }
     return libPromise;
   }
 
